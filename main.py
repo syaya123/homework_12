@@ -21,34 +21,39 @@ class Name(Field):
 
 class Phone(Field):
     @Field.value.setter
-    def phone_problems(self, value):
+    def value(self, value):
         if not value.isnumeric():
             raise ValueError('Wrong phone! Please, enter only digital.')
-        if len(value) != 9 or len(value) != 12:
-            raise ValueError('Wrong phone! Please, enter only digital.')
+        if len(value) == 10:
+            pass
+        elif len(value) == 12:
+            if value[0] != 0:
+                raise ValueError('Wrong phone! The operator kod has to start from zero.')
         else:
-            if len(value) == 12:
-                if value[0] != 0:
-                    raise ValueError('Wrong phone! The operator kod has to start from zero.')
+            # if len(value) != 12:
+            raise ValueError('Wrong phone! Length of phone must be 10 or 12 digits.')
         self.__value = value
 
 class Birthday(Field):
     @Field.value.setter
-    def birthday_problems(self, value):
-        day, month, year = value.strip().split(' ')
-        currentdate = datetime.now()
-        list_month = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-        if int(day) < 1  or int(day) > 31:
-            raise ValueError('Wrong birthday! The day must be in the range from 1 to 31.')
-        if not month in list_month:
-            raise ValueError('Wrong birthday! The month must be string and true. For example: "May"')
-        if len(year) != 4: 
-            raise ValueError('Wrong birthday! The year have 4 digital.')
-        if int(year) > currentdate.year:
-            raise ValueError('Wrong birthday! The year must be in past or current.')
-        if month == "February":
-            if int(day) <= 1 or int(day) >= 29:
-                raise ValueError('Wrong birthday! The February have days from 1 to 29.')
+    def value(self, value):
+        # day, month, year = value.strip().split(' ')
+        currentdate = datetime.now().date()
+        # value.date()
+        # list_month = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+        # if int(day) < 1  or int(day) > 31:
+        #     raise ValueError('Wrong birthday! The day must be in the range from 1 to 31.')
+        # if month not in list_month:
+        #     raise ValueError('Wrong birthday! The month must be string and true. For example: "May"')
+        # if len(year) != 4: 
+        #     raise ValueError('Wrong birthday! The year have 4 digital.')
+        # if int(year) > currentdate.year:
+        #     raise ValueError('Wrong birthday! The year must be in past or current.')
+        # if month == "February":
+        #     if int(day) <= 1 or int(day) >= 29:
+        #         raise ValueError('Wrong birthday! The February have days from 1 to 29.')
+        if value > currentdate:
+            raise ValueError("Wrong birthday! The date must be in past or current")
         self.__value = value
 
 class Record:
@@ -113,6 +118,7 @@ class Record:
 class AddressBook(UserDict):
     def __init__(self):
         super().__init__()
+        self.file_name = 'data.bin'
         self.open_file()
 
     def add_record(self, record):
@@ -160,13 +166,13 @@ class AddressBook(UserDict):
             yield page
     
     def save_file(self):
-        file_name = 'data.bin'
-        with open(file_name, "wb") as fh:
+        # file_name = 'data.bin'
+        with open(self.file_name, "wb") as fh:
             pickle.dump(self.data, fh)
 
     def open_file(self):
         try:
-            with open('data.bin', "rb") as fh:
+            with open(self.file_name, "rb") as fh:
                 self.data = pickle.load(fh)
         except FileNotFoundError:
             pass
@@ -205,6 +211,7 @@ def add_contacts(contact):
     record = Record(name)
 
     for phone in phones:
+        phone.strip()
         record.add_phone(phone)
 
     contacts.add_record(record)
@@ -212,11 +219,29 @@ def add_contacts(contact):
 
 @input_error
 def add_birthday(contact):
-    name, birth = create_birth(contact)
-    birthday = ' '.join(birth)
-    record = contacts[name]
-    record.add_birthday(birth)
-    return f'You added to contact {name} birthday {birthday}.'
+    try:
+        name, birth = create_birth(contact)
+    # currentdate = datetime.now()
+    # list_month = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    # if int(day) < 1  or int(day) > 31:
+    #     raise ValueError('Wrong birthday! The day must be in the range from 1 to 31.')
+    # if month not in list_month:
+    #     raise ValueError('Wrong birthday! The month must be string and true. For example: "May"')
+    # if len(year) != 4: 
+    #     raise ValueError('Wrong birthday! The year have 4 digital.')
+    # if int(year) > currentdate.year:
+    #     raise ValueError('Wrong birthday! The year must be in past or current.')
+    # if month == "February":
+    #     if int(day) <= 1 or int(day) >= 29:
+    #         raise ValueError('Wrong birthday! The February have days from 1 to 29.')
+        data_birthday = ' '.join(birth)
+        birthday = datetime.strptime(data_birthday, '%d %B %Y').date()
+        record = contacts[name]
+        record.add_birthday(birthday)
+        return f'You added to contact {name} birthday {birthday}.'
+    except ValueError:
+        raise ('Wrong format birthday! Please write in format "birthday <name> <day month year >"/'
+                         'For example: birthday Olya 12 June 2002.')
 
 @input_error
 def show_wait_birthday(command_string):
