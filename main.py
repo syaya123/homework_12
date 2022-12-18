@@ -216,8 +216,7 @@ def add_birthday(contact):
     birthday = ' '.join(birth)
     record = contacts[name]
     record.add_birthday(birth)
-
-    return f'For {name} you add Birthday {birth}'
+    return f'You added to contact {name} birthday {birthday}.'
 
 @input_error
 def show_wait_birthday(command_string):
@@ -234,7 +233,7 @@ def change_contact(number):
     return f'You changed contact'
 
 @input_error
-def show_phone(command_string):
+def show_contact(command_string):
     search_info = ''
     command, value = command_string.split(' ')
     records = contacts.search(value)
@@ -274,7 +273,7 @@ dict_command = {'hello': greeting,
     'change': change_contact,
     'delete phone': del_phone,
     'delete': del_func,
-    'phone': show_phone,
+    'phone': show_contact,
     "wait": show_wait_birthday,
     'show all': show_all,
     'good bye': finish,
