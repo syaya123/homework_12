@@ -5,16 +5,16 @@ import pickle
 
 class Field:
     def __init__(self, value):
-        self.__value = None
+        self._value = None
         self.value = value
 
     @property
     def value(self):
-        return self.__value
+        return self._value
 
     @value.setter
     def value(self, value):
-            self.__value = value
+            self._value = value
 
 class Name(Field):
     pass
@@ -30,31 +30,16 @@ class Phone(Field):
             if value[0] != 0:
                 raise ValueError('Wrong phone! The operator kod has to start from zero.')
         else:
-            # if len(value) != 12:
             raise ValueError('Wrong phone! Length of phone must be 10 or 12 digits.')
-        self.__value = value
+        self._value = value
 
 class Birthday(Field):
     @Field.value.setter
     def value(self, value):
-        # day, month, year = value.strip().split(' ')
         currentdate = datetime.now().date()
-        # value.date()
-        # list_month = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-        # if int(day) < 1  or int(day) > 31:
-        #     raise ValueError('Wrong birthday! The day must be in the range from 1 to 31.')
-        # if month not in list_month:
-        #     raise ValueError('Wrong birthday! The month must be string and true. For example: "May"')
-        # if len(year) != 4: 
-        #     raise ValueError('Wrong birthday! The year have 4 digital.')
-        # if int(year) > currentdate.year:
-        #     raise ValueError('Wrong birthday! The year must be in past or current.')
-        # if month == "February":
-        #     if int(day) <= 1 or int(day) >= 29:
-        #         raise ValueError('Wrong birthday! The February have days from 1 to 29.')
         if value > currentdate:
             raise ValueError("Wrong birthday! The date must be in past or current")
-        self.__value = value
+        self._value = value
 
 class Record:
     def __init__(self, name):
@@ -96,18 +81,17 @@ class Record:
     
     def days_to_birthday(self):
         current_datetime = datetime.now()
-        date_birthday = datetime.strptime(self.birthday.value, '%d %B %Y')
-        if date_birthday.month > current_datetime.month:
-            birth_date = datetime(year=current_datetime.year, month=date_birthday.month, day=date_birthday.day)
+        if self.birthday.value.month > current_datetime.month:
+            birth_date = datetime(year=current_datetime.year, month=self.birthday.value.month, day=self.birthday.value.day)
             time_left = birth_date - current_datetime
-        elif date_birthday.month < current_datetime.month:
-            birth_date = datetime(year=current_datetime.year+1, month=date_birthday.month, day=date_birthday.day)
+        elif self.birthday.value.month < current_datetime.month:
+            birth_date = datetime(year=current_datetime.year+1, month=self.birthday.value.month, day=self.birthday.value.day)
             time_left = birth_date - current_datetime
         else:
-            if date_birthday.day > current_datetime.day:
-                time_left = date_birthday.day - current_datetime.day
-            elif date_birthday.day < current_datetime.day:
-                birth_date = datetime(year=current_datetime.year+1, month=date_birthday.month, day=date_birthday.day)
+            if self.birthday.value.day > current_datetime.day:
+                time_left = self.birthday.value.day - current_datetime.day
+            elif self.birthday.value.day < current_datetime.day:
+                birth_date = datetime(year=current_datetime.year+1, month=self.birthday.value.month, day=self.birthday.value.day)
                 time_left = birth_date - current_datetime
             else:
                 return f'Happy birthday!'
@@ -166,7 +150,6 @@ class AddressBook(UserDict):
             yield page
     
     def save_file(self):
-        # file_name = 'data.bin'
         with open(self.file_name, "wb") as fh:
             pickle.dump(self.data, fh)
 
@@ -190,8 +173,8 @@ def input_error(func):
             if res == None:
                 return 'Enter user name. The first letter is capital, and the rest are small.'
             return res
-        except (KeyError, IndexError):
-            return 'Give your name and phone number, please!'   
+        except (KeyError, IndexError, TypeError):
+            return "First, enter contact's name and phone number correctly!"   
     return miss_name
     
 """ 
@@ -221,27 +204,13 @@ def add_contacts(contact):
 def add_birthday(contact):
     try:
         name, birth = create_birth(contact)
-    # currentdate = datetime.now()
-    # list_month = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-    # if int(day) < 1  or int(day) > 31:
-    #     raise ValueError('Wrong birthday! The day must be in the range from 1 to 31.')
-    # if month not in list_month:
-    #     raise ValueError('Wrong birthday! The month must be string and true. For example: "May"')
-    # if len(year) != 4: 
-    #     raise ValueError('Wrong birthday! The year have 4 digital.')
-    # if int(year) > currentdate.year:
-    #     raise ValueError('Wrong birthday! The year must be in past or current.')
-    # if month == "February":
-    #     if int(day) <= 1 or int(day) >= 29:
-    #         raise ValueError('Wrong birthday! The February have days from 1 to 29.')
         data_birthday = ' '.join(birth)
         birthday = datetime.strptime(data_birthday, '%d %B %Y').date()
         record = contacts[name]
         record.add_birthday(birthday)
         return f'You added to contact {name} birthday {birthday}.'
-    except ValueError:
-        raise ('Wrong format birthday! Please write in format "birthday <name> <day month year >"/'
-                         'For example: birthday Olya 12 June 2002.')
+    except (ValueError):
+        return 'Wrong format birthday! Please write in format: birthday <name> <day month year > (eg birthday Olya 12 June 2002).'
 
 @input_error
 def show_wait_birthday(command_string):
