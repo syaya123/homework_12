@@ -24,9 +24,9 @@ class Phone(Field):
     def value(self, value):
         if not value.isnumeric():
             raise ValueError('Wrong phone! Please, enter only digital.')
-        if len(value) == 10:
+        if len(value) == 12:
             pass
-        elif len(value) == 12:
+        elif len(value) == 10:
             if value[0] != 0:
                 raise ValueError('Wrong phone! The operator kod has to start from zero.')
         else:
